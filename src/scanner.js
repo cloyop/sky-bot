@@ -1,10 +1,9 @@
-import { page } from "./skyCoachPw.js";
-
-export default async function ordersScanner(x = []) {
+export default async function ordersScanner(page, lastOrdersScanned = []) {
   try {
-    return await page.evaluate((x) => {
+    return await page.evaluate((lastOrdersScanned) => {
+      console.log("scan");
       const findList = document.querySelector(".find-list");
-      if (!findList) return null;
+      if (!findList) return [[], []];
       const orderListItems = document.querySelectorAll(
         ".order-list-item--find"
       );
@@ -63,29 +62,10 @@ export default async function ordersScanner(x = []) {
             ".order-list-item__order-price > span.order-price__cent"
           )?.textContent || "00";
 
-        let priceInt = parseFloat(
-          `${pricesDolar}.${priceCent}`.replace("$", "")
-        );
+        let price = parseFloat(`${pricesDolar}.${priceCent}`.replace("$", ""));
 
-        let price = priceInt;
-        let categoryInt;
-        const hardcoreKeyWords = title.includes("hardcore");
-        const classicKeyWords =
-          content.includes("classic") || content.includes("wotlk");
-        const lolKeyWords =
-          content.includes("lol") ||
-          content.includes("placement matches") ||
-          content.includes("top") ||
-          content.includes(" na ") ||
-          content.includes("Unranked");
-
-        if (hardcoreKeyWords) categoryInt = 1;
-        else if (classicKeyWords) categoryInt = 2;
-        else if (lolKeyWords) categoryInt = 3;
-        else categoryInt = 0;
         let express = content.includes("express") ? true : false;
         const orderObject = {
-          category: categoryInt,
           title,
           desc,
           orderId,
@@ -96,18 +76,18 @@ export default async function ordersScanner(x = []) {
           express,
         };
         if (GetOrderButton.classList.contains("button--disabled")) {
-          findList.removeChild(el);
+          el.parentElement.removeChild(el);
           return;
         }
         ids.push(orderId);
-        if (x.length > 0 && x.includes(orderId)) return;
+        if (lastOrdersScanned.length > 0 && lastOrdersScanned.includes(orderId))
+          return;
         data.push(orderObject);
       });
       console.log(data, ids);
       return [data, ids];
-    }, x);
+    }, lastOrdersScanned);
   } catch (error) {
-    console.log(error);
     return [null, null];
   }
 }
