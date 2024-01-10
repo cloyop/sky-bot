@@ -3,7 +3,7 @@ export default async function ordersScanner(page, lastOrdersScanned = []) {
     return await page.evaluate((lastOrdersScanned) => {
       console.log("scan");
       const findList = document.querySelector(".find-list");
-      if (!findList) return [[], []];
+      if (!findList) return [null, null];
       const orderListItems = document.querySelectorAll(
         ".order-list-item--find"
       );

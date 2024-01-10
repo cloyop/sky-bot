@@ -13,18 +13,37 @@ export async function newOrderMessageControl(orderObject) {
       getOrder(orderObject.orderId, 1)
     );
     const bodyM = { embeds: [embed], components: [row] };
+    deleteIf(orderObject.orderId);
     let message = await retailOrderChannel.send(bodyM);
     messagesOnChat.set(orderObject.orderId, message);
-    console.log("saved -> ", orderObject.orderId);
+    console.log(
+      "Order Send ->> OrderId:",
+      orderObject.orderId,
+      "DiscordMessageID:",
+      message?.id,
+      " Saved? ->>",
+      messagesOnChat.has(orderObject.orderId)
+    );
   } catch (error) {}
 }
 export async function takenOrderMessageControl(orderId) {
   try {
-    console.log("remove ->", orderId, "-> has??", messagesOnChat.has(orderId));
     const m = messagesOnChat.get(orderId);
+    console.log(
+      "remove ->",
+      orderId,
+      "-> has??",
+      messagesOnChat.delete(orderId)
+    );
     await m.delete();
-    messagesOnChat.delete(orderId);
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 }
+
+const deleteIf = async (orderId) => {
+  let m = messagesOnChat.get(orderId);
+  if (m != undefined) {
+    try {
+      await m.delete();
+    } catch (error) {}
+  }
+};

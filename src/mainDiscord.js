@@ -2,7 +2,7 @@ import { Client } from "discord.js";
 import { backuper } from "../backUp/index.js";
 import { repler, updatePriceK } from "./miscellany.js";
 import { writeFile } from "node:fs/promises";
-import { deepReset, loopScanner } from "./skyCoachPw.js";
+import { deepReset } from "./skyCoachPw.js";
 export let retailOrderChannel;
 export let clientAvatar;
 const client = new Client({ intents: 3276799 });
@@ -13,14 +13,14 @@ client.on("messageCreate", async (m) => {
     (m.author.id !== process.env.ALYS && m.author.id !== process.env.CL)
   )
     return;
-  if (m.content === "!sw") {
-    backuper();
-    return;
-  }
-  if (m.content === "!cls") {
-    m.channel.bulkDelete(100);
-    return;
-  }
+  let msg = m.content.toLowerCase();
+
+  if (msg === "!sw") return backuper();
+
+  if (msg === "!cls") return bulkDelete(m.channel);
+
+  if (msg.startsWith("!dr"))
+    return msg.includes("-h") ? deepReset(false) : deepReset();
 });
 client.on("interactionCreate", async (i) => {
   try {
@@ -45,14 +45,13 @@ client.on("interactionCreate", async (i) => {
             clearInterval(thisInt);
           }
         }, 1000);
-        await repler(
+        repler(
           i,
           `Updated ${quantity} by ${
             i.user.globalName || i.user.username || "Quien Carajos Eres"
           }`
         );
-        await deepReset();
-        await loopScanner();
+        deepReset();
       }
     }
   } catch (error) {
@@ -72,4 +71,9 @@ export let discordInit = async () => {
     console.log(error);
     process.exit(1);
   }
+};
+export let bulkDelete = async (channel, quantity = 100) => {
+  try {
+    await channel.bulkDelete(quantity);
+  } catch (error) {}
 };
